@@ -13,7 +13,7 @@ var Playlist = React.createClass({
   //background color is a state so that it could be used for changing the css when it renders
   getInitialState: function() {
     return {
-      backgroundColor: '#34344d'
+      backgroundColor: '#ffd042'
     }
   },
 
@@ -34,7 +34,6 @@ var Playlist = React.createClass({
           </button>
         </div>
         <div className='bigger-container'>
-        //passes in all the child props to songEntry, the parent
           <SongEntry {...this.props}/>
         </div>
       </div>

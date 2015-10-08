@@ -5,12 +5,12 @@ var Fireproof = require('fireproof');
     Fireproof.bless(Promise);
 
 // create reference to database
-var ref = new Firebase('https://llamajamsauth.firebaseio.com/')
+var ref = new Firebase('https://magpiejammies.firebaseio.com/')
 // 'promisable' reference
 var fpRef = new Fireproof(ref);
 
 // use database secret for token generator
-var tokenGenerator = new FirebaseTokenGenerator('VgF8MXKNUfEnzygDAERDZdiLPUS86W4AGBHmEYM8');
+var tokenGenerator = new FirebaseTokenGenerator('cSQaavmPHldEO4F7vOcOJUmQFp7g6ebVKtQGR04D');
 
 
 module.exports = {
@@ -38,7 +38,7 @@ module.exports = {
 			playlistCode: playlistCode
 		};
 		
-		var playlistRef = new Firebase("https://llamajamsauth.firebaseio.com/" + playlistCode);
+		var playlistRef = new Firebase("https://magpiejammies.firebaseio.com/" + playlistCode);
 
     // set the refactored data in database with playlistCode as item name
     playlistRef.set(refactored);
