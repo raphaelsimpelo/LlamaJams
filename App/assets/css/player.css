@@ -123,9 +123,9 @@ body {
 /* container playlist holds all the chosen songs */
 .container-playlist {
   margin: 0 auto;
-  height: 80px;
+  height: 40px;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 3px;
   background-color: transparent;
 }
 
@@ -248,4 +248,14 @@ body {
   float: right;
   padding-top: 2px;
   padding-right: 10px;
+}
+
+.thumbs-up {
+  width: 25px;
+  margin-left: 10px;
+}
+
+.thumbs-down {
+  width: 25px;
+  margin-left: 10px;
 }
