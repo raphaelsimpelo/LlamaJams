@@ -36,15 +36,21 @@ var SongEntry = React.createClass({
       var eachVoteUp = eachSong.voteUp;
       var eachVoteDown = eachSong.voteDown;
       var eachKey = snapshot.key();
+      var eachDuration = eachSong.duration;
+      var eachImg = eachSong.artwork_url;
       // Pushes each song into the items array for rendering
       var eachVoteSum = eachVoteUp - eachVoteDown;
+      var duration = eachDuration;
+      var artwork_url = eachImg;
       this.items.push({
         song: eachTitle,
         songUrl: eachSong.songUrl,
         key: eachKey,
         voteUp: eachVoteUp,
         voteDown: eachVoteDown,
-        voteSum: eachVoteSum
+        voteSum: eachVoteSum,
+        duration: duration,
+        artwork_url: artwork_url
       });
       this.setState({songs: this.items})
     }.bind(this));
@@ -133,6 +139,7 @@ var SongEntry = React.createClass({
         fbref.child(children[0]).remove();
         // Play firstSong
         SC.stream(player.state.songs[0].songUrl, myOptions, function(song) {
+          // Put countdown here
           song.play();
         });
       }
@@ -140,6 +147,7 @@ var SongEntry = React.createClass({
     // If there's no current soundManager object, create one
     if(!window.soundManager){
       SC.stream(player.state.songs[0].songUrl, myOptions, function(song) {
+        // Put countdown here too
         song.play();
       })
     }else{
@@ -170,9 +178,13 @@ var SongEntry = React.createClass({
       for(var i = 0; i < tracks.length; i++) {
         var eachSong = tracks[i].title;
         var eachUrl = tracks[i].uri;
+        var eachDur = tracks[i].duration;
+        var eachImg = tracks[i].artwork_url;
         array.push({
           title: eachSong,
-          songUrl: eachUrl
+          songUrl: eachUrl,
+          duration: eachDur,
+          artwork: eachImg
         });
        }
       this.setState({ 
