@@ -30,13 +30,29 @@ var Song = React.createClass({
   	this.props.onThatClickDown({key: this.props.data.key});
   },
 
+  handleThatDelete: function() {
+    this.props.onThatDeleteClick({key: this.props.data.key});
+  },
+
   render: function() {
+    var jwt = window.localStorage.getItem('token');
+    if (jwt) {
+      var display = {
+        display: 'inline-block'
+      }
+    }
+    else {
+      var display = {
+        display: 'none'
+      }
+    }
     return (
       <div className='container-playlist'>
         <div className='song-view'>
           {this.props.data.song}
           <img className="thumbs-up" src="../../assets/img/thumbs-up.png" onClick={this.handleThatThingUp}/>
           <img className="thumbs-down" src="../../assets/img/thumbs-down.png" onClick={this.handleThatThingDown}/>
+          <img className="delete" src="../../assets/img/x.png" style={display} onClick={this.handleThatDelete}/>
         </div>
       </div>
     )

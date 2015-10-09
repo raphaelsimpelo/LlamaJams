@@ -28660,6 +28660,9 @@
 	        SC.stream(player.state.songs[0].songUrl, myOptions, function (song) {
 	          song.play();
 	          player.state.songs[0].isPlaying = true;
+	          fbref.child(player.state.songs[0].key).update({
+	            'isPlaying': 'true'
+	          });
 	          console.log('first: did this in song.play place');
 	        });
 	      }
@@ -28744,10 +28747,11 @@
 	    for (var i = 0; i < this.state.songs.length; i++) {
 	      if (arg.key === this.state.songs[i].key) {
 	        this.state.songs[i].voteDown++;
+	        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
 
 	        this.firebaseRef.child(arg.key).update({
 	          'voteDown': this.state.songs[i].voteDown,
-	          'voteSum': this.state.songs[i].voteUp - this.state.songs[i].voteDown
+	          'voteSum': this.state.songs[i].voteSum
 	        });
 
 	        this.firebaseRef.child(arg.key).child('voteDown').on('value', function (snapshot) {
@@ -28758,6 +28762,17 @@
 	          console.log('look here, the voteSum went down to ', snapshot.val());
 	        });
 
+	        this.rearrangeItTheRightWay();
+	        this.forceUpdate();
+	      }
+	    }
+	  },
+
+	  handleOnThatDeleteClick: function handleOnThatDeleteClick(arg) {
+	    for (var i = 0; i < this.state.songs.length; i++) {
+	      if (i !== 0 && arg.key === this.state.songs[i].key) {
+	        this.state.songs.splice(i, 1);
+	        this.firebaseRef.child(arg.key).remove();
 	        this.rearrangeItTheRightWay();
 	        this.forceUpdate();
 	      }
@@ -28782,7 +28797,6 @@
 
 	  render: function render() {
 	    var context = this;
-	    context.rearrangeItTheRightWay();
 	    var songResults = this.state.searchResults.map(function (song, i) {
 	      var songUri = song.songUrl;
 	      return React.createElement(
@@ -28799,7 +28813,7 @@
 	      );
 	    });
 	    var songStructure = this.state.songs.map(function (song, i) {
-	      return React.createElement(Song, { data: song, key: i, onThatClickUp: context.handleOnThatClickUp, onThatClickDown: context.handleOnThatClickDown });
+	      return React.createElement(Song, { data: song, key: i, onThatClickUp: context.handleOnThatClickUp, onThatClickDown: context.handleOnThatClickDown, onThatDeleteClick: context.handleOnThatDeleteClick });
 	    });
 	    if (this.state.active) {
 	      var display = {
@@ -28918,7 +28932,21 @@
 	    this.props.onThatClickDown({ key: this.props.data.key });
 	  },
 
+	  handleThatDelete: function handleThatDelete() {
+	    this.props.onThatDeleteClick({ key: this.props.data.key });
+	  },
+
 	  render: function render() {
+	    var jwt = window.localStorage.getItem('token');
+	    if (jwt) {
+	      var display = {
+	        display: 'inline-block'
+	      };
+	    } else {
+	      var display = {
+	        display: 'none'
+	      };
+	    }
 	    return React.createElement(
 	      'div',
 	      { className: 'container-playlist' },
@@ -28927,7 +28955,8 @@
 	        { className: 'song-view' },
 	        this.props.data.song,
 	        React.createElement('img', { className: 'thumbs-up', src: '../../assets/img/thumbs-up.png', onClick: this.handleThatThingUp }),
-	        React.createElement('img', { className: 'thumbs-down', src: '../../assets/img/thumbs-down.png', onClick: this.handleThatThingDown })
+	        React.createElement('img', { className: 'thumbs-down', src: '../../assets/img/thumbs-down.png', onClick: this.handleThatThingDown }),
+	        React.createElement('img', { className: 'delete', src: '../../assets/img/x.png', style: display, onClick: this.handleThatDelete })
 	      )
 	    );
 	  }

@@ -137,6 +137,9 @@ var SongEntry = React.createClass({
         SC.stream(player.state.songs[0].songUrl, myOptions, function(song) {
           song.play();
           player.state.songs[0].isPlaying = true;
+          fbref.child(player.state.songs[0].key).update({
+            'isPlaying':'true'
+          });
           console.log('first: did this in song.play place');
         });
       }
@@ -222,10 +225,11 @@ var SongEntry = React.createClass({
     for (var i = 0; i < this.state.songs.length; i++) {
       if (arg.key === this.state.songs[i].key) {
         this.state.songs[i].voteDown++;
-        
+        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
+
         this.firebaseRef.child(arg.key).update({
           'voteDown': this.state.songs[i].voteDown,
-          'voteSum': this.state.songs[i].voteUp - this.state.songs[i].voteDown
+          'voteSum': this.state.songs[i].voteSum
         });
 
         this.firebaseRef.child(arg.key).child('voteDown').on('value', function(snapshot) {
@@ -236,6 +240,17 @@ var SongEntry = React.createClass({
           console.log('look here, the voteSum went down to ', snapshot.val());
         });
         
+        this.rearrangeItTheRightWay();
+        this.forceUpdate();
+      }
+    }
+  },
+
+  handleOnThatDeleteClick: function(arg) {
+    for (var i = 0; i < this.state.songs.length; i++) {
+      if (i !== 0 && arg.key === this.state.songs[i].key) {
+        this.state.songs.splice(i,1);
+        this.firebaseRef.child(arg.key).remove();
         this.rearrangeItTheRightWay();
         this.forceUpdate();
       }
@@ -258,13 +273,12 @@ var SongEntry = React.createClass({
 
   render: function(){
     var context = this;
-    context.rearrangeItTheRightWay();
     var songResults = this.state.searchResults.map(function(song, i) {
       var songUri = song.songUrl
       return <a className='song-results' key={i} href='#' ref='eachSoundcloud' value={songUri}> {song.title} <div className='plus'>+</div></a>
     });
     var songStructure = this.state.songs.map(function(song, i) {
-      return <Song data={song} key={i} onThatClickUp={context.handleOnThatClickUp} onThatClickDown={context.handleOnThatClickDown}/>
+      return <Song data={song} key={i} onThatClickUp={context.handleOnThatClickUp} onThatClickDown={context.handleOnThatClickDown} onThatDeleteClick={context.handleOnThatDeleteClick}/>
     });
     if(this.state.active) {
       var display = {
