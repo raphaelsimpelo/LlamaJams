@@ -49,18 +49,6 @@ var SongEntry = React.createClass({
       });
       this.setState({songs: this.items})
     }.bind(this));
-    var somethingIsActuallyPlaying = false;
-    for (var k = 0; k < this.state.songs.length; k++) {
-      if (this.state.songs[k].isPlaying) {
-        var theOneThatsPlaying = this.state.songs.splice(k,1)[0];
-        somethingIsActuallyPlaying = true;
-      }
-    }
-    this.state.songs.sort(function(a, b) {return b.voteSum-a.voteSum});
-    if (somethingIsActuallyPlaying) {
-      this.state.songs.unshift(theOneThatsPlaying);
-    }
-    this.forceUpdate();
   },
 
   // This rerenders the playlist every time a song is removed from Firebase
@@ -78,18 +66,6 @@ var SongEntry = React.createClass({
       }
       // Resets the state to accurately reflect removed items
       this.setState({songs: this.state.songs});
-      var somethingIsActuallyPlaying = false;
-      for (var k = 0; k < this.state.songs.length; k++) {
-        if (this.state.songs[k].isPlaying) {
-          var theOneThatsPlaying = this.state.songs.splice(k,1)[0];
-          somethingIsActuallyPlaying = true;
-        }
-      }
-      this.state.songs.sort(function(a, b) {return b.voteSum-a.voteSum});
-      if (somethingIsActuallyPlaying) {
-        this.state.songs.unshift(theOneThatsPlaying);
-      }
-      this.forceUpdate();
     }.bind(this));
   },
 
@@ -235,29 +211,8 @@ var SongEntry = React.createClass({
           console.log('hey, the voteSum went up to ', snapshot.val());
         });
 
-        // var firstInQueue = this.state.songs.shift();
-        var somethingIsActuallyPlaying = false;
-        for (var k = 0; k < this.state.songs.length; k++) {
-          if (this.state.songs[k].isPlaying) {
-            var theOneThatsPlaying = this.state.songs.splice(k,1)[0];
-            somethingIsActuallyPlaying = true;
-          }
-        }
-        this.state.songs.sort(function(a, b) {return b.voteSum-a.voteSum});
-        if (somethingIsActuallyPlaying) {
-          this.state.songs.unshift(theOneThatsPlaying);
-        }
+        this.rearrangeItTheRightWay();
         this.forceUpdate();
-        // this.firebaseRef.set({playlist:null});
-        // for (var j = 0; j < this.state.songs.length; j++) {
-        //   this.firebaseRef.push({
-        //     title: this.state.songs[j].title,
-        //     songUrl: this.state.songs[j].songUrl,
-        //     voteUp: this.state.songs[j].voteUp,
-        //     voteDown: this.state.songs[j].voteDown,
-        //     voteSum: this.state.songs[j].voteSum
-        //   });
-        // }
       }
     }
     
@@ -280,28 +235,14 @@ var SongEntry = React.createClass({
         this.firebaseRef.child(arg.key).child('voteSum').on('value', function(snapshot) {
           console.log('look here, the voteSum went down to ', snapshot.val());
         });
-        var somethingIsActuallyPlaying = false;
-        for (var k = 0; k < this.state.songs.length; k++) {
-          if (this.state.songs[k].isPlaying) {
-            var theOneThatsPlaying = this.state.songs.splice(k,1)[0];
-            somethingIsActuallyPlaying = true;
-          }
-        }
-        this.state.songs.sort(function(a, b) {return b.voteSum-a.voteSum});
-        if (somethingIsActuallyPlaying) {
-          this.state.songs.unshift(theOneThatsPlaying);
-        }
+        
+        this.rearrangeItTheRightWay();
         this.forceUpdate();
       }
     }
   },
 
-  render: function(){
-    var context = this;
-    var songResults = this.state.searchResults.map(function(song, i) {
-      var songUri = song.songUrl
-      return <a className='song-results' key={i} href='#' ref='eachSoundcloud' value={songUri}> {song.title} <div className='plus'>+</div></a>
-    });
+  rearrangeItTheRightWay: function() {
     var somethingIsActuallyPlaying = false;
     for (var k = 0; k < this.state.songs.length; k++) {
       if (this.state.songs[k].isPlaying) {
@@ -313,7 +254,15 @@ var SongEntry = React.createClass({
     if (somethingIsActuallyPlaying) {
       this.state.songs.unshift(theOneThatsPlaying);
     }
-    console.log('dude, this is this.state.songs in render', this.state.songs)
+  },
+
+  render: function(){
+    var context = this;
+    context.rearrangeItTheRightWay();
+    var songResults = this.state.searchResults.map(function(song, i) {
+      var songUri = song.songUrl
+      return <a className='song-results' key={i} href='#' ref='eachSoundcloud' value={songUri}> {song.title} <div className='plus'>+</div></a>
+    });
     var songStructure = this.state.songs.map(function(song, i) {
       return <Song data={song} key={i} onThatClickUp={context.handleOnThatClickUp} onThatClickDown={context.handleOnThatClickDown}/>
     });
