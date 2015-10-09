@@ -28553,7 +28553,7 @@
 	    this.items = [];
 	    this.firebaseRef = new Firebase('https://magpiejammies.firebaseio.com/' + receivedCode + '/playlist');
 
-	    this.firebaseRef.orderByChild('voteSum').on('child_added', (function (snapshot) {
+	    this.firebaseRef.on('child_added', (function (snapshot) {
 	      var eachSong = snapshot.val();
 	      var eachTitle = eachSong.title;
 	      var eachVoteUp = eachSong.voteUp;
@@ -28615,20 +28615,21 @@
 
 	  // This function adds songs to firebase
 	  pushSong: function pushSong(e) {
-	    console.log('dude, what is e.target? ', e.target);
 	    var selectedSong = e.target.childNodes[0].data;
 	    var allResults = this.state.searchResults;
-	    console.log('what is in those searchResults? ', allResults);
-
+	    var alreadyDidOnce = false;
 	    for (var i = 0; i < allResults.length; i++) {
-	      if (allResults[i].title === selectedSong) {
-	        this.firebaseRef.push({
-	          title: allResults[i].title,
-	          songUrl: allResults[i].songUrl,
-	          voteUp: 0,
-	          voteDown: 0,
-	          voteSum: 0
-	        });
+	      if (!alreadyDidOnce) {
+	        if (allResults[i].title === selectedSong) {
+	          this.firebaseRef.push({
+	            title: allResults[i].title,
+	            songUrl: allResults[i].songUrl,
+	            voteUp: 0,
+	            voteDown: 0,
+	            voteSum: 0
+	          });
+	          alreadyDidOnce = true;
+	        }
 	      }
 	    }
 	    this.toggleBox();
@@ -28688,18 +28689,18 @@
 	    }
 	    SC.get('http://api.soundcloud.com/tracks/', { q: inputSearch, limit: 7 }, (function (tracks) {
 	      // Display each song title and an option to add '+' to host playlist
-	      var obj = [];
+	      var array = [];
 
 	      for (var i = 0; i < tracks.length; i++) {
 	        var eachSong = tracks[i].title;
 	        var eachUrl = tracks[i].uri;
-	        obj.push({
+	        array.push({
 	          title: eachSong,
 	          songUrl: eachUrl
 	        });
 	      }
 	      this.setState({
-	        searchResults: obj
+	        searchResults: array
 	      });
 	    }).bind(this));
 	  },
@@ -28794,7 +28795,8 @@
 	  },
 
 	  componentDidMount: function componentDidMount() {
-	    if (this.props.playlistCode.length > 0) {
+	    var jwt = window.localStorage.getItem('token');
+	    if (this.props.playlistCode.length > 0 && !jwt) {
 	      this.loadSongsFromServer(this.props.playlistCode);
 	      this.rerenderPlaylist();
 	    }

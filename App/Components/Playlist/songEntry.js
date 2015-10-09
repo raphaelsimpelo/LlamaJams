@@ -92,20 +92,21 @@ var SongEntry = React.createClass({
 
   // This function adds songs to firebase
   pushSong: function(e) {
-    console.log('dude, what is e.target? ', e.target);
     var selectedSong = e.target.childNodes[0].data;
     var allResults = this.state.searchResults;
-    console.log('what is in those searchResults? ', allResults);
-
+    var alreadyDidOnce = false;
     for(var i = 0; i < allResults.length; i++) {
-      if(allResults[i].title === selectedSong) {
-        this.firebaseRef.push({
-          title: allResults[i].title,
-          songUrl: allResults[i].songUrl,
-          voteUp: 0,
-          voteDown: 0,
-          voteSum: 0
-        });
+      if (!alreadyDidOnce) {
+        if(allResults[i].title === selectedSong) {
+          this.firebaseRef.push({
+            title: allResults[i].title,
+            songUrl: allResults[i].songUrl,
+            voteUp: 0,
+            voteDown: 0,
+            voteSum: 0
+          });
+          alreadyDidOnce = true;
+        }
       }
     }
    this.toggleBox();
@@ -198,10 +199,8 @@ var SongEntry = React.createClass({
         this.firebaseRef.child(arg.key).child('voteSum').on('value', function(snapshot) {
           console.log('hey, the voteSum went up to ', snapshot.val());
         });
-
       }
     }
-  
   },
 
   handleOnThatClickDown: function(arg) {
@@ -221,11 +220,8 @@ var SongEntry = React.createClass({
         this.firebaseRef.child(arg.key).child('voteSum').on('value', function(snapshot) {
           console.log('look here, the voteSum went down to ', snapshot.val());
         });
-
       }
     }
-    
-
   },
 
   render: function(){
@@ -261,7 +257,8 @@ var SongEntry = React.createClass({
    },
 
   componentDidMount: function() {
-    if (this.props.playlistCode.length > 0) {
+    var jwt = window.localStorage.getItem('token');
+    if (this.props.playlistCode.length > 0 && !jwt) {
       this.loadSongsFromServer(this.props.playlistCode);
       this.rerenderPlaylist();
     }
