@@ -28648,14 +28648,18 @@
 	        var duration = this.duration;
 	      },
 	      onfinish: function onfinish() {
+
 	        // Delete first song from firebase
-	        var children = [];
-	        fbref.once('value', function (snapshot) {
-	          snapshot.forEach(function (childSnapshot) {
-	            children.push(childSnapshot.key().toString());
-	          });
-	        });
-	        fbref.child(children[0]).remove();
+	        // var children = [];
+	        // fbref.once('value', function(snapshot){
+	        //   snapshot.forEach(function(childSnapshot){
+	        //     children.push(childSnapshot.key().toString());
+	        //   });
+	        // });
+	        // fbref.child(children[0]).remove();
+
+	        fbref.child(player.state.songs[0].key).remove();
+
 	        // Play firstSong
 	        SC.stream(player.state.songs[0].songUrl, myOptions, function (song) {
 	          song.play();
