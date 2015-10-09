@@ -28903,30 +28903,10 @@
 	'use strict';
 
 	var React = __webpack_require__(1);
-	// var ReactFire = require('reactfire');
 
 	//the purpose of Song is to render our songs in a uniform way, songEntry uses this structure to render
 	var Song = React.createClass({
 	  displayName: 'Song',
-
-	  // mixins: [ReactFire],
-
-	  getDefaultProps: function getDefaultProps() {
-	    return {
-	      thatVoteCount: 0
-	    };
-	  },
-
-	  componentWillMount: function componentWillMount() {
-	    // this.firebaseRef = new Firebase("https://magpiejammies.firebaseio.com");
-	    // this.bindAsArray(this.firebaseRef, "items");
-	  },
-
-	  handleThatClick: function handleThatClick() {
-	    // alert('dude, something happened!');
-	    this.props.thatVoteCount++;
-	    alert("count is now: " + this.props.thatVoteCount);
-	  },
 
 	  handleThatThingUp: function handleThatThingUp() {
 	    this.props.onThatClickUp({ key: this.props.data.key });
