@@ -28648,18 +28648,8 @@
 	        var duration = this.duration;
 	      },
 	      onfinish: function onfinish() {
-
-	        // Delete first song from firebase
-	        // var children = [];
-	        // fbref.once('value', function(snapshot){
-	        //   snapshot.forEach(function(childSnapshot){
-	        //     children.push(childSnapshot.key().toString());
-	        //   });
-	        // });
-	        // fbref.child(children[0]).remove();
-
+	        // Removes first song after it's done playing
 	        fbref.child(player.state.songs[0].key).remove();
-
 	        // Play firstSong
 	        SC.stream(player.state.songs[0].songUrl, myOptions, function (song) {
 	          song.play();
@@ -28748,8 +28738,9 @@
 	  },
 
 	  handleOnThatClickDown: function handleOnThatClickDown(arg) {
+	    var alreadyDidOnce = false;
 	    for (var i = 0; i < this.state.songs.length; i++) {
-	      if (arg.key === this.state.songs[i].key) {
+	      if (arg.key === this.state.songs[i].key && !alreadyDidOnce) {
 	        this.state.songs[i].voteDown++;
 	        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
 
@@ -28757,6 +28748,7 @@
 	          'voteDown': this.state.songs[i].voteDown,
 	          'voteSum': this.state.songs[i].voteSum
 	        });
+	        console.log('dude, does this happen twice?');
 
 	        this.firebaseRef.child(arg.key).child('voteDown').on('value', function (snapshot) {
 	          console.log('give me that voteDown: ', snapshot.val());
@@ -28766,6 +28758,7 @@
 	          console.log('look here, the voteSum went down to ', snapshot.val());
 	        });
 
+	        alreadyDidOnce = true;
 	        this.rearrangeItTheRightWay();
 	        this.forceUpdate();
 	      }
@@ -28914,6 +28907,7 @@
 
 	  handleThatThingDown: function handleThatThingDown() {
 	    this.props.onThatClickDown({ key: this.props.data.key });
+	    console.log('onThatClickDown: Does this happen twice?');
 	  },
 
 	  handleThatDelete: function handleThatDelete() {
@@ -28939,6 +28933,7 @@
 	        { className: 'song-view' },
 	        this.props.data.song,
 	        React.createElement('img', { className: 'thumbs-up', src: '../../assets/img/thumbs-up.png', onClick: this.handleThatThingUp }),
+	        this.props.data.voteSum,
 	        React.createElement('img', { className: 'thumbs-down', src: '../../assets/img/thumbs-down.png', onClick: this.handleThatThingDown }),
 	        React.createElement('img', { className: 'delete', src: '../../assets/img/x.png', style: display, onClick: this.handleThatDelete })
 	      )

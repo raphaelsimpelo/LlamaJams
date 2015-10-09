@@ -9,6 +9,7 @@ var Song = React.createClass({
 
   handleThatThingDown: function() {
   	this.props.onThatClickDown({key: this.props.data.key});
+    console.log('onThatClickDown: Does this happen twice?')
   },
 
   handleThatDelete: function() {
@@ -32,6 +33,7 @@ var Song = React.createClass({
         <div className='song-view'>
           {this.props.data.song}
           <img className="thumbs-up" src="../../assets/img/thumbs-up.png" onClick={this.handleThatThingUp}/>
+          {this.props.data.voteSum}
           <img className="thumbs-down" src="../../assets/img/thumbs-down.png" onClick={this.handleThatThingDown}/>
           <img className="delete" src="../../assets/img/x.png" style={display} onClick={this.handleThatDelete}/>
         </div>

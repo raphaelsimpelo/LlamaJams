@@ -250,17 +250,8 @@ body {
   padding-right: 10px;
 }
 
-.thumbs-up {
+.thumbs-up, .thumbs-down, .delete {
   width: 25px;
   margin-left: 10px;
-}
-
-.thumbs-down {
-  width: 25px;
-  margin-left: 10px;
-}
-
-.delete {
-  width: 25px;
-  margin-left: 10px;
+  cursor: pointer;
 }
