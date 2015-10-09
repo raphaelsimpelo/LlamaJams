@@ -9,7 +9,7 @@ module.exports = {
 
 		var time = '';
 
-		var time += this.timeMinuteAndSecond(minutes) + ":" + this.timeMinuteAndSecond(leftOver);
+		time += this.timeMinuteAndSecond(minutes) + ":" + this.timeMinuteAndSecond(leftOver);
 
 		return time;
 	},

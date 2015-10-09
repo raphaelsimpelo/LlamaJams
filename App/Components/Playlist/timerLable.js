@@ -1,7 +1,7 @@
 var React = require('react');
 var timerMixin = require('./timerMixin');
 
-module.exports = function() {
+module.exports = React.createClass({
 	mixins: [ timerMixin ],
 
 	render: function() {
@@ -16,4 +16,4 @@ module.exports = function() {
 
 	}
 
-}
+});
