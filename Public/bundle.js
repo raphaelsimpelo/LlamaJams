@@ -28709,10 +28709,11 @@
 	    for (var i = 0; i < this.state.songs.length; i++) {
 	      if (arg.key === this.state.songs[i].key) {
 	        this.state.songs[i].voteUp++;
+	        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
 
 	        this.firebaseRef.child(arg.key).update({
 	          'voteUp': this.state.songs[i].voteUp,
-	          'voteSum': this.state.songs[i].voteUp - this.state.songs[i].voteDown
+	          'voteSum': this.state.songs[i].voteSum
 	        });
 
 	        this.firebaseRef.child(arg.key).child('voteUp').on('value', function (snapshot) {
@@ -28722,6 +28723,20 @@
 	        this.firebaseRef.child(arg.key).child('voteSum').on('value', function (snapshot) {
 	          console.log('hey, the voteSum went up to ', snapshot.val());
 	        });
+	        // this.state.songs.sort(function(a, b) {return a.voteSum-b.voteSum});
+	        var firstInQueue = this.state.songs.shift();
+	        for (var k = 1; k < this.state.songs.length; k++) {
+	          for (var j = 0; j < k; j++) {
+	            if (this.state.songs[k].voteSum > this.state.songs[j].voteSum) {
+	              var temp = this.state.songs[k];
+	              this.state.songs[k] = this.state.songs[j];
+	              this.state.songs[j] = temp;
+	            }
+	          }
+	        }
+	        this.state.songs.unshift(firstInQueue);
+	        console.log('firstInQueue:', firstInQueue);
+	        console.log("I want to know what is in this.state.songs:", this.state.songs);
 	      }
 	    }
 	  },
@@ -28743,6 +28758,9 @@
 	        this.firebaseRef.child(arg.key).child('voteSum').on('value', function (snapshot) {
 	          console.log('look here, the voteSum went down to ', snapshot.val());
 	        });
+	        // this.state.songs.sort(function(a, b) {return a.voteSum-b.voteSum});
+
+	        console.log("I want to know what is in this.state.songs:", this.state.songs);
 	      }
 	    }
 	  },
