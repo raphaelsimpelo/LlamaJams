@@ -13,7 +13,7 @@ var Playlist = React.createClass({
   //background color is a state so that it could be used for changing the css when it renders
   getInitialState: function() {
     return {
-      backgroundColor: '#ffd042'
+      backgroundColor: '#58575d'
     }
   },
 
