@@ -28523,7 +28523,7 @@
 	var React = __webpack_require__(1);
 	var Search = __webpack_require__(170);
 	var Song = __webpack_require__(171);
-	var Player = __webpack_require__(172);
+	var Player = __webpack_require__(173);
 	var Firebase = __webpack_require__(162);
 
 	var SongEntry = React.createClass({
@@ -28573,7 +28573,8 @@
 	        voteDown: eachVoteDown,
 	        voteSum: eachVoteSum,
 	        duration: duration,
-	        artwork_url: artwork_url
+	        artwork_url: artwork_url,
+	        isPlaying: false
 	      });
 	      this.setState({ songs: this.items });
 	    }).bind(this));
@@ -28621,20 +28622,23 @@
 
 	  // This function adds songs to firebase
 	  pushSong: function pushSong(e) {
-	    console.log('dude, what is e.target? ', e.target);
 	    var selectedSong = e.target.childNodes[0].data;
 	    var allResults = this.state.searchResults;
-	    console.log('what is in those searchResults? ', allResults);
-
+	    var alreadyDidOnce = false;
 	    for (var i = 0; i < allResults.length; i++) {
-	      if (allResults[i].title === selectedSong) {
-	        this.firebaseRef.push({
-	          title: allResults[i].title,
-	          songUrl: allResults[i].songUrl,
-	          voteUp: 0,
-	          voteDown: 0,
-	          voteSum: 0
-	        });
+	      if (!alreadyDidOnce) {
+	        if (allResults[i].title === selectedSong) {
+	          this.firebaseRef.push({
+	            title: allResults[i].title,
+	            songUrl: allResults[i].songUrl,
+	            voteUp: 0,
+	            voteDown: 0,
+	            voteSum: 0,
+	            duration: allResults[i].duration,
+	            isPlaying: false
+	          });
+	          alreadyDidOnce = true;
+	        }
 	      }
 	    }
 	    this.toggleBox();
@@ -28649,29 +28653,50 @@
 
 	    var myOptions = {
 	      onload: function onload() {
-	        var duration = this.duration;
+	        //PUT TIMER HERE
+	        var duration = Math.floor(this.duration / 1000) * 1000;
+
+	        if (player.state.toggle) {
+	          this.clearInterval(startTime);
+	        }
+	        var startTime = setInterval(function () {
+	          var minutes = Math.floor(duration / (60 * 1000));
+	          var seconds = (duration % 60000 / 1000).toFixed(0);
+	          if (!player.state.toggle) {
+	            console.log(duration);
+	            if (seconds < 10) {
+	              $('.Timerbox').html(minutes + ":" + '0' + seconds);
+	            } else {
+	              $('.Timerbox').html(minutes + ":" + seconds);
+	            };
+	            duration -= 1000;
+	            if (duration === 0) {
+	              this.clearInterval(startTime);
+	            };
+	          }
+	        }, 1000);
 	      },
 	      onfinish: function onfinish() {
-	        // Delete first song from firebase
-	        var children = [];
-	        fbref.once('value', function (snapshot) {
-	          snapshot.forEach(function (childSnapshot) {
-	            children.push(childSnapshot.key().toString());
-	          });
-	        });
-	        fbref.child(children[0]).remove();
+	        // Removes first song after it's done playing
+	        fbref.child(player.state.songs[0].key).remove();
 	        // Play firstSong
 	        SC.stream(player.state.songs[0].songUrl, myOptions, function (song) {
-	          // Put countdown here
 	          song.play();
+	          player.state.songs[0].isPlaying = true;
+	          fbref.child(player.state.songs[0].key).update({
+	            'isPlaying': 'true'
+	          });
 	        });
 	      }
 	    };
 	    // If there's no current soundManager object, create one
 	    if (!window.soundManager) {
 	      SC.stream(player.state.songs[0].songUrl, myOptions, function (song) {
-	        // Put countdown here too
 	        song.play();
+	        player.state.songs[0].isPlaying = true;
+	        fbref.child(player.state.songs[0].key).update({
+	          'isPlaying': 'true'
+	        });
 	      });
 	    } else {
 	      if (this.state.toggle) {
@@ -28720,51 +28745,72 @@
 	    for (var i = 0; i < this.state.songs.length; i++) {
 	      if (arg.key === this.state.songs[i].key) {
 	        this.state.songs[i].voteUp++;
+	        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
 
 	        this.firebaseRef.child(arg.key).update({
 	          'voteUp': this.state.songs[i].voteUp,
-	          'voteSum': this.state.songs[i].voteUp - this.state.songs[i].voteDown
+	          'voteSum': this.state.songs[i].voteSum
 	        });
 
-	        this.firebaseRef.child(arg.key).child('voteUp').on('value', function (snapshot) {
-	          console.log('give me that voteUp: ', snapshot.val());
-	        });
-
-	        this.firebaseRef.child(arg.key).child('voteSum').on('value', function (snapshot) {
-	          console.log('hey, the voteSum went up to ', snapshot.val());
-	        });
+	        this.rearrangeItTheRightWay();
+	        this.forceUpdate();
 	      }
 	    }
 	  },
 
 	  handleOnThatClickDown: function handleOnThatClickDown(arg) {
+	    var alreadyDidOnce = false;
 	    for (var i = 0; i < this.state.songs.length; i++) {
-	      if (arg.key === this.state.songs[i].key) {
+	      if (arg.key === this.state.songs[i].key && !alreadyDidOnce) {
 	        this.state.songs[i].voteDown++;
+	        this.state.songs[i].voteSum = this.state.songs[i].voteUp - this.state.songs[i].voteDown;
 
 	        this.firebaseRef.child(arg.key).update({
 	          'voteDown': this.state.songs[i].voteDown,
-	          'voteSum': this.state.songs[i].voteUp - this.state.songs[i].voteDown
+	          'voteSum': this.state.songs[i].voteSum
 	        });
 
-	        this.firebaseRef.child(arg.key).child('voteDown').on('value', function (snapshot) {
-	          console.log('give me that voteDown: ', snapshot.val());
-	        });
-
-	        this.firebaseRef.child(arg.key).child('voteSum').on('value', function (snapshot) {
-	          console.log('look here, the voteSum went down to ', snapshot.val());
-	        });
+	        alreadyDidOnce = true;
+	        this.rearrangeItTheRightWay();
+	        this.forceUpdate();
 	      }
+	    }
+	  },
+
+	  handleOnThatDeleteClick: function handleOnThatDeleteClick(arg) {
+	    for (var i = 0; i < this.state.songs.length; i++) {
+	      if (i !== 0 && arg.key === this.state.songs[i].key) {
+	        this.state.songs.splice(i, 1);
+	        this.firebaseRef.child(arg.key).remove();
+	        this.rearrangeItTheRightWay();
+	        this.forceUpdate();
+	      }
+	    }
+	  },
+
+	  rearrangeItTheRightWay: function rearrangeItTheRightWay() {
+	    var somethingIsActuallyPlaying = false;
+	    for (var k = 0; k < this.state.songs.length; k++) {
+	      if (this.state.songs[k].isPlaying) {
+	        var theOneThatsPlaying = this.state.songs.splice(k, 1)[0];
+	        somethingIsActuallyPlaying = true;
+	      }
+	    }
+	    this.state.songs.sort(function (a, b) {
+	      return b.voteSum - a.voteSum;
+	    });
+	    if (somethingIsActuallyPlaying) {
+	      this.state.songs.unshift(theOneThatsPlaying);
 	    }
 	  },
 
 	  render: function render() {
 	    var context = this;
-	    var songResults = this.state.searchResults.map(function (song) {
+	    var songResults = this.state.searchResults.map(function (song, i) {
 	      var songUri = song.songUrl;
 	      return React.createElement(
 	        'a',
-	        { className: 'song-results', href: '#', ref: 'eachSoundcloud', value: songUri },
+	        { className: 'song-results', key: i, href: '#', ref: 'eachSoundcloud', value: songUri },
 	        ' ',
 	        song.title,
 	        ' ',
@@ -28775,8 +28821,8 @@
 	        )
 	      );
 	    });
-	    var songStructure = this.state.songs.map(function (song) {
-	      return React.createElement(Song, { data: song, onThatClickUp: context.handleOnThatClickUp, onThatClickDown: context.handleOnThatClickDown });
+	    var songStructure = this.state.songs.map(function (song, i) {
+	      return React.createElement(Song, { data: song, key: i, onThatClickUp: context.handleOnThatClickUp, onThatClickDown: context.handleOnThatClickDown, onThatDeleteClick: context.handleOnThatDeleteClick });
 	    });
 	    if (this.state.active) {
 	      var display = {
@@ -28792,6 +28838,7 @@
 	      null,
 	      this.state.hasToken ? React.createElement(Player, { togglePlayer: this.playPause }) : null,
 	      React.createElement(Search, { checkClick: this.handleSearchInput }),
+	      React.createElement('div', { className: 'Timerbox' }),
 	      React.createElement(
 	        'div',
 	        { className: 'soundcloud-results', style: display },
@@ -28806,7 +28853,8 @@
 	  },
 
 	  componentDidMount: function componentDidMount() {
-	    if (this.props.playlistCode.length > 0) {
+	    var jwt = window.localStorage.getItem('token');
+	    if (this.props.playlistCode.length > 0 && !jwt) {
 	      this.loadSongsFromServer(this.props.playlistCode);
 	      this.rerenderPlaylist();
 	    }
@@ -28860,6 +28908,7 @@
 
 	'use strict';
 
+	var timer = __webpack_require__(172);
 	var React = __webpack_require__(1);
 	// var ReactFire = require('reactfire');
 
@@ -28868,23 +28917,7 @@
 	  displayName: 'Song',
 
 	  // mixins: [ReactFire],
-
-	  getDefaultProps: function getDefaultProps() {
-	    return {
-	      thatVoteCount: 0
-	    };
-	  },
-
-	  componentWillMount: function componentWillMount() {
-	    // this.firebaseRef = new Firebase("https://magpiejammies.firebaseio.com");
-	    // this.bindAsArray(this.firebaseRef, "items");
-	  },
-
-	  handleThatClick: function handleThatClick() {
-	    // alert('dude, something happened!');
-	    this.props.thatVoteCount++;
-	    alert("count is now: " + this.props.thatVoteCount);
-	  },
+	  mixins: [timer],
 
 	  handleThatThingUp: function handleThatThingUp() {
 	    this.props.onThatClickUp({ key: this.props.data.key });
@@ -28892,18 +28925,36 @@
 
 	  handleThatThingDown: function handleThatThingDown() {
 	    this.props.onThatClickDown({ key: this.props.data.key });
+	    console.log('onThatClickDown: Does this happen twice?');
+	  },
+
+	  handleThatDelete: function handleThatDelete() {
+	    this.props.onThatDeleteClick({ key: this.props.data.key });
 	  },
 
 	  render: function render() {
+	    var jwt = window.localStorage.getItem('token');
+	    if (jwt) {
+	      var display = {
+	        display: 'inline-block'
+	      };
+	    } else {
+	      var display = {
+	        display: 'none'
+	      };
+	    }
 	    return React.createElement(
 	      'div',
 	      { className: 'container-playlist' },
 	      React.createElement(
 	        'div',
 	        { className: 'song-view' },
+	        this.turnTimeToSecond(this.props.data.duration),
 	        this.props.data.song,
 	        React.createElement('img', { className: 'thumbs-up', src: '../../assets/img/thumbs-up.png', onClick: this.handleThatThingUp }),
-	        React.createElement('img', { className: 'thumbs-down', src: '../../assets/img/thumbs-down.png', onClick: this.handleThatThingDown })
+	        this.props.data.voteSum,
+	        React.createElement('img', { className: 'thumbs-down', src: '../../assets/img/thumbs-down.png', onClick: this.handleThatThingDown }),
+	        React.createElement('img', { className: 'delete', src: '../../assets/img/x.png', style: display, onClick: this.handleThatDelete })
 	      )
 	    );
 	  }
@@ -28913,6 +28964,41 @@
 
 /***/ },
 /* 172 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+
+		turnTimeToSecond: function turnTimeToSecond(time) {
+			// Turn duration pass into minutes
+			var minutes = Math.floor(time / (60 * 1000));
+
+			// Get left over second from the song
+			var leftOver = (time % 60000 / 1000).toFixed(0);
+
+			var time = '';
+
+			time += this.timeMinuteAndSecond(minutes) + ":" + this.timeMinuteAndSecond(leftOver);
+
+			return time;
+		},
+
+		timeMinuteAndSecond: function timeMinuteAndSecond(time) {
+			// Time less than one second
+			if (time < 1) {
+				return "00";
+			} else if (time < 10) {
+				return "0" + time;
+			} else {
+				return time;
+			}
+		}
+
+	};
+
+/***/ },
+/* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

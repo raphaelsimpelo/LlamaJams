@@ -5,7 +5,7 @@ module.exports = {
 		var minutes = Math.floor(time / (60 * 1000));
 
 		// Get left over second from the song
-		var leftOver = Math.ceil(time % (60 * 1000));
+		var leftOver = ((time % 60000) / 1000).toFixed(0);
 
 		var time = '';
 

@@ -2,7 +2,7 @@
 body {
   font-family: 'Proxima Nova';
   letter-spacing: 0.2px;
-  background-color: #d0c490;
+  background-color: #2A282F;
   height: 100%;
   color: #fff;
 }
@@ -250,12 +250,8 @@ body {
   padding-right: 10px;
 }
 
-.thumbs-up {
+.thumbs-up, .thumbs-down, .delete {
   width: 25px;
   margin-left: 10px;
-}
-
-.thumbs-down {
-  width: 25px;
-  margin-left: 10px;
+  cursor: pointer;
 }
