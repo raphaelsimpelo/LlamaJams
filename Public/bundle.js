@@ -28475,7 +28475,7 @@
 	  //background color is a state so that it could be used for changing the css when it renders
 	  getInitialState: function getInitialState() {
 	    return {
-	      backgroundColor: '#ffd042'
+	      backgroundColor: '#58575d'
 	    };
 	  },
 
@@ -28950,6 +28950,7 @@
 	        'div',
 	        { className: 'song-view' },
 	        this.turnTimeToSecond(this.props.data.duration),
+	        ' ',
 	        this.props.data.song,
 	        React.createElement('img', { className: 'thumbs-up', src: '../../assets/img/thumbs-up.png', onClick: this.handleThatThingUp }),
 	        this.props.data.voteSum,

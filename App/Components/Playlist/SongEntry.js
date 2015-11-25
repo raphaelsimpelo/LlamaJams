@@ -1,3 +1,13 @@
+// The purpose of SongEntry.js is to display and manipulate all songs on the playlist
+
+// ---------------------------------------------------------------------------------
+// Keep in mind that this was a legacy project, and a lot of the functionality already existed
+// It was my main responsibility to create the voting feature of the app
+//
+// Also keep in mind that most of React's HTML is embedded into components' "render" methods,
+// which is dispersed throughout the application (and most of it is legacy code)
+// ---------------------------------------------------------------------------------
+
 var React = require('react');
 var Search = require('./Search');
 var Song = require('./Song');
@@ -14,6 +24,7 @@ var SongEntry = React.createClass({
     }
   },
 
+  // Sets the inital values of the state of the playlist
   getInitialState: function(){
     return {
       songs: [],
@@ -25,8 +36,8 @@ var SongEntry = React.createClass({
     }
   },
 
-  // This function fetches the right playlist from Firebase based on
-  // your playlist code.
+  // [Modified to accommodate voting feature]
+  // This function fetches the right playlist from Firebase based on the playlist code
   loadSongsFromServer: function(receivedCode) {
     this.items = [];
     this.firebaseRef = new Firebase('https://magpiejammies.firebaseio.com/' + receivedCode + '/playlist');
@@ -98,7 +109,8 @@ var SongEntry = React.createClass({
     })
   },
 
-  // This function adds songs to firebase
+  // [Modified to accommodate voting feature]
+  // This function adds songs to Firebase database
   pushSong: function(e) {
     var selectedSong = e.target.childNodes[0].data;
     var allResults = this.state.searchResults;
@@ -123,6 +135,7 @@ var SongEntry = React.createClass({
    e.preventDefault();
   },
 
+  // [Modified to accommodate voting feature]
   // Controls the play and pause functionality of the music player
   playPause: function() {
     var fbref = this.firebaseRef;
@@ -216,6 +229,8 @@ var SongEntry = React.createClass({
    }.bind(this));
   },
 
+  // [Created from scratch]
+  // Handles a click to the "thumbs up"
   handleOnThatClickUp: function(arg) {
     for (var i = 0; i < this.state.songs.length; i++) {
       if (arg.key === this.state.songs[i].key) {
@@ -234,7 +249,8 @@ var SongEntry = React.createClass({
     
   },
 
-
+  // [Created from scratch]
+  // Handles a click to the "thumbs down"
   handleOnThatClickDown: function(arg) {
     var alreadyDidOnce = false;
     for (var i = 0; i < this.state.songs.length; i++) {
@@ -254,6 +270,8 @@ var SongEntry = React.createClass({
     }
   },
 
+  // [Created from scratch]
+  // Deletes the selected song 
    handleOnThatDeleteClick: function(arg) {
     for (var i = 0; i < this.state.songs.length; i++) {
       if (i !== 0 && arg.key === this.state.songs[i].key) {
@@ -265,6 +283,8 @@ var SongEntry = React.createClass({
     }
   },
 
+  // [Created from scratch] 
+  // Rerenders the playlist in the correct order
   rearrangeItTheRightWay: function() {
     var somethingIsActuallyPlaying = false;
     for (var k = 0; k < this.state.songs.length; k++) {
@@ -279,38 +299,40 @@ var SongEntry = React.createClass({
     }
   },
 
-render: function(){
-    var context = this;
-    var songResults = this.state.searchResults.map(function(song, i) {
-      var songUri = song.songUrl
-      return <a className='song-results' key={i} href='#' ref='eachSoundcloud' value={songUri}> {song.title} <div className='plus'>+</div></a>
-    });
-    var songStructure = this.state.songs.map(function(song, i) {
-      return <Song data={song} key={i} onThatClickUp={context.handleOnThatClickUp} onThatClickDown={context.handleOnThatClickDown} onThatDeleteClick={context.handleOnThatDeleteClick} />
-    });
-    if(this.state.active) {
-      var display = {
-        display: 'block'
+  // [Modified to accomodate voting feature]
+  // Renders the playlist unto the page
+  render: function(){
+      var context = this;
+      var songResults = this.state.searchResults.map(function(song, i) {
+        var songUri = song.songUrl
+        return <a className='song-results' key={i} href='#' ref='eachSoundcloud' value={songUri}> {song.title} <div className='plus'>+</div></a>
+      });
+      var songStructure = this.state.songs.map(function(song, i) {
+        return <Song data={song} key={i} onThatClickUp={context.handleOnThatClickUp} onThatClickDown={context.handleOnThatClickDown} onThatDeleteClick={context.handleOnThatDeleteClick} />
+      });
+      if(this.state.active) {
+        var display = {
+          display: 'block'
+        }
+      } else {
+        var display = {
+          display: 'none' 
+        }
       }
-    } else {
-      var display = {
-        display: 'none' 
-      }
-    }
-    return (
-      <div>
-       {this.state.hasToken ? <Player togglePlayer={this.playPause}/> : null}
-        <Search checkClick={this.handleSearchInput}/>
-        <div className='Timerbox'></div>
-        <div className='soundcloud-results' style={display}>
-          <div className='song-results' onClick={this.pushSong}>
-            {songResults}
+      return (
+        <div>
+         {this.state.hasToken ? <Player togglePlayer={this.playPause}/> : null}
+          <Search checkClick={this.handleSearchInput}/>
+          <div className='Timerbox'></div>
+          <div className='soundcloud-results' style={display}>
+            <div className='song-results' onClick={this.pushSong}>
+              {songResults}
+            </div>
           </div>
+         {songStructure}
         </div>
-       {songStructure}
-      </div>
-    );
-   },
+      );
+     },
 
   componentDidMount: function() {
     var jwt = window.localStorage.getItem('token');
